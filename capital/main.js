@@ -1,3 +1,90 @@
+// ─── CINEMATIC INTERACTION LAYER ───
+let prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function setCursorPosition(e) {
+  if (prefersReducedMotion) return;
+  const x = (e.clientX / window.innerWidth) * 100;
+  const y = (e.clientY / window.innerHeight) * 100;
+  document.documentElement.style.setProperty('--cursor-x', x + '%');
+  document.documentElement.style.setProperty('--cursor-y', y + '%');
+  
+  // Update path card hover effects
+  document.querySelectorAll('.path-card').forEach(card => {
+    const rect = card.getBoundingClientRect();
+    const cx = e.clientX - rect.left;
+    const cy = e.clientY - rect.top;
+    card.style.setProperty('--card-x', cx + 'px');
+    card.style.setProperty('--card-y', cy + 'px');
+  });
+}
+
+if (!prefersReducedMotion) {
+  document.addEventListener('mousemove', setCursorPosition);
+}
+
+// Modal system
+class CapitalModal {
+  constructor() {
+    this.backdrop = null;
+    this.currentFocus = null;
+  }
+  
+  create(content) {
+    if (this.backdrop) this.backdrop.remove();
+    
+    this.backdrop = document.createElement('div');
+    this.backdrop.className = 'modal-backdrop';
+    this.backdrop.setAttribute('role', 'dialog');
+    this.backdrop.setAttribute('aria-modal', 'true');
+    
+    const inner = document.createElement('div');
+    inner.className = 'modal-content';
+    inner.innerHTML = content;
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'modal-close';
+    closeBtn.setAttribute('aria-label', 'Close modal');
+    closeBtn.innerHTML = '×';
+    closeBtn.addEventListener('click', () => this.close());
+    
+    inner.insertBefore(closeBtn, inner.firstChild);
+    this.backdrop.append(inner);
+    document.body.append(this.backdrop);
+    
+    this.currentFocus = document.activeElement;
+    setTimeout(() => closeBtn.focus(), 100);
+    
+    this.backdrop.addEventListener('click', (e) => {
+      if (e.target === this.backdrop) this.close();
+    });
+    
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') this.close();
+    });
+  }
+  
+  open() {
+    if (this.backdrop) {
+      this.backdrop.classList.add('active');
+    }
+  }
+  
+  close() {
+    if (this.backdrop) {
+      this.backdrop.classList.remove('active');
+      setTimeout(() => {
+        this.backdrop?.remove();
+        this.backdrop = null;
+        if (this.currentFocus) this.currentFocus.focus();
+      }, 300);
+    }
+  }
+}
+
+const modal = new CapitalModal();
+
+// ─── END CINEMATIC LAYER ───
+
 const app = document.getElementById('capital-app');
 const base = new URL('./content/', import.meta.url);
 const capitalRoot = new URL('./', import.meta.url);
