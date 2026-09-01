@@ -1,5 +1,6 @@
 // ─── CINEMATIC INTERACTION LAYER ───
 let prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+console.log('Capital: prefers-reduced-motion =', prefersReducedMotion);
 
 function setCursorPosition(e) {
   if (prefersReducedMotion) return;
@@ -258,29 +259,41 @@ function renderRegisterForm() {
   returnBtn.addEventListener('click', () => navigate('home'));
 }
 
+
 function handleRegisterSubmit(form) {
   const data = new FormData(form);
-  const interest = data.get('interest');
-  const location = data.get('location');
-  const intent = data.get('intent');
-  const name = data.get('name');
-  const email = data.get('email');
-  const message = data.get('message');
-   
-  const subject = 'Alvin / Capital — Interest Registration';
-  const body = encodeURIComponent(
-    `Interested in: ${interest}\n` +
-    `Location: ${location}\n` +
-    `Intent: ${intent}\n` +
-    `Name: ${name}\n` +
-    `Email: ${email}\n` +
-    `${message ? `Message: ${message}\n` : ''}\n` +
-    `---\n` +
-    `Submitted from Capital registration form`
-  );
-   
-  window.location.href = `mailto:aphiri1658@gmail.com?subject=${encodeURIComponent(subject)}&body=${body}`;
+
+  const googleFormUrl =
+    'https://docs.google.com/forms/d/e/1FAIpQLSfUDTCOWqVO2y4zL7l9TtKABdwfiHIh7At3JmofCCIjbkzupw/formResponse';
+
+  const googleData = new FormData();
+
+  googleData.append('entry.2039860312', data.get('interest'));
+  googleData.append('entry.504368055', data.get('location'));
+  googleData.append('entry.545711308', data.get('intent'));
+  googleData.append('entry.960417744', data.get('name'));
+  googleData.append('entry.1155633920', data.get('email'));
+  googleData.append('entry.1656564057', data.get('message') || '');
+
+  fetch(googleFormUrl, {
+    method: 'POST',
+    mode: 'no-cors',
+    body: googleData
+  })
+    .then(() => {
+      form.innerHTML = `
+        <div class="form-success">
+          <h2>Thank you.</h2>
+          <p>Your interest has been registered successfully.</p>
+        </div>
+      `;
+    })
+    .catch((error) => {
+      console.error('Google Form submission failed:', error);
+    });
 }
+
+
 
 
 function render() {
@@ -296,5 +309,20 @@ window.addEventListener('popstate', () => {
   render();
 });
 
-state.view = viewFromLocation();
-render();
+// Basic error surface for debugging when a page appears blank in-browser.
+window.addEventListener('error', (e) => {
+  console.error('Unhandled error:', e.error || e.message || e);
+  try {
+    const appEl = document.getElementById('capital-app');
+    if (appEl) appEl.innerHTML = '<div class="page-error" style="padding:2rem;color:#fff;background:rgba(128,0,0,0.25);">An error occurred while rendering Capital. Open the console for details.</div>';
+  } catch (err) { /* ignore */ }
+});
+
+try {
+  state.view = viewFromLocation();
+  render();
+} catch (err) {
+  console.error('Initial render failed:', err);
+  const appEl = document.getElementById('capital-app');
+  if (appEl) appEl.innerHTML = '<div class="page-error" style="padding:2rem;color:#fff;background:rgba(128,0,0,0.25);">An error occurred during initial render. Check the browser console for details.</div>';
+}

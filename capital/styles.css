@@ -320,4 +320,40 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
   body::before {
     animation: none !important;
   }
+  /* Ensure elements that rely on reveal animations are visible when motion is reduced */
+  .capital-header,
+  .eyebrow,
+  .capital-hero h1,
+  .hero-deck,
+  .affiliation,
+  .hero-actions,
+  .path-card,
+  .scroll-note,
+  .capital-hero > div {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  /* Disable per-card glow and pseudo-element transitions */
+  .path-card::before {
+    opacity: 0 !important;
+    transition: none !important;
+  }
+  /* Ensure modal content is visible without entrance animation */
+  .modal-backdrop, .modal-content {
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }
+
+/* Temporary debug override: force visibility if reveal animations left elements hidden.
+   Remove this block once the root cause is confirmed. */
+.capital-view,
+.capital-view * {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+}
+.capital-view { position: relative; z-index: 1; }
+.modal-backdrop { z-index: 100; }
+.interest-dock { z-index: 5; }
+
